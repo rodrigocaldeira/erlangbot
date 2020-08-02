@@ -14,27 +14,42 @@ init(Context) ->
 	{ok, Context}.
 
 connect() ->
-	gen_server:call(?MODULE, connect).
+	gen_server:call(?MODULE, connect),
+	login().
 
 stop() ->
 	gen_server:cast(?MODULE, stop).
+
+login() ->
+	gen_server:call(?MODULE, login).
 
 handle_call(connect, _From, Context) ->
 	case Context#context.connected of
 		true -> 
 			{reply, ok, Context};
 		false ->
-			Socket = connect(Context),
-			NewContext = Context#context{socket=Socket, connected=true},
-			{reply, ok, NewContext}
+			case connect(Context) of
+				Socket ->
+					io:format("Conectado com sucesso. ~n"),
+					NewContext = Context#context{socket=Socket, connected=true},
+					{reply, ok, NewContext};
+				error ->
+					{reply, error, Context}
+			end
 	end;
 
+handle_call(login, _From, Context) ->
+	io:format("Login... ~n"),
+	ssl:send(Context#context.socket, "PASS " ++ Context#context.password ++ "\r\n"),
+	ssl:send(Context#context.socket, "NICK " ++ Context#context.user ++ "\r\n"),
+	{reply, ok, Context};
+
 handle_call({send, Data}, _From, Context) ->
-	send(Context#context.socket, Data),
+	ssl:send(Context#context.socket, Data ++ "\r\n"),
 	{reply, ok, Context}.
 
 handle_cast(stop, Context) ->
-	gen_tcp:close(Context#context.socket),
+	ssl:close(Context#context.socket),
 	{stop, normal, Context}.
 
 handle_info({tcp_closed, _Socket}, Context) ->
@@ -51,21 +66,17 @@ terminate(_Reason, _Context) ->
 	ok.
 
 connect(Context) ->
-	case gen_tcp:connect(Context#context.host,
+	ssl:start(),
+	case ssl:connect(Context#context.host,
 			 Context#context.port,
 			 [binary, {active, true}, {packet, line}, {keepalive, true}]) of
 		{ok, Socket} ->
-			send(Socket, "PASS " ++ Context#context.password),
-			send(Socket, "NICK " ++ Context#context.user),
 			Socket;
 		{error, Reason} ->
-			io:format("Error connecting: ~p ~n", [Reason]),
+			io:format("Erro ao conectar: ~p ~n", [Reason]),
 			error
 	end.
 
 send(Data) ->
 	gen_server:call(?MODULE, {send, Data}).
 
-send(Socket, Data) ->
-	Message = Data ++ "\r\n",
-	gen_tcp:send(Socket, Message).
