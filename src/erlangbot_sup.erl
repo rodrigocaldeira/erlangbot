@@ -26,12 +26,14 @@ start_link(User, Password) ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([User, Password]) ->
-    SupFlags = #{strategy => one_for_all,
-                 intensity => 0,
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 5,
                  period => 1},
     ChildSpecs = [#{
 	id => erlangbot_server,
-	start => {erlangbot_server, start, [User, Password]}
+	start => {erlangbot_server, start, [User, Password]},
+	restart => permanent,
+	type => worker
      }],
     {ok, {SupFlags, ChildSpecs}}.
 
