@@ -1,6 +1,6 @@
 -module(erlangbot_server).
 -behaviour(gen_server).
--export([start/2, init/1, connect/0, disconnect/0, handle_call/3, handle_cast/2, join/1, part/1]).
+-export([start/2, init/1, connect/0, disconnect/0, handle_call/3, handle_cast/2, join/1, part/1, send_message/2]).
 -include("context.hrl").
 
 start(User, Password) ->
@@ -32,12 +32,19 @@ join(Channel) ->
 part(Channel) ->
 	gen_server:call(?MODULE, {part, Channel}).
 
+send_message(Channel, Message) ->
+	gen_server:call(?MODULE, {send, Channel, Message}).
+
 handle_call(connect, _From, Context) ->
 	erlangbot_client:connect(),
 	{reply, ok, Context};
 
 handle_call({join, Channel}, _From, Context) ->
 	erlangbot_client:send("JOIN " ++ Channel),
+	{reply, ok, Context};
+
+handle_call({send, Channel, Message}, _From, Context) ->
+	erlangbot_client:send("PRIVMSG " ++ Channel ++ " : " ++ Message),
 	{reply, ok, Context};
 
 handle_call({part, Channel}, _From, Context) ->
