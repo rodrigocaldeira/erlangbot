@@ -55,6 +55,11 @@ handle_cast(stop, Context) ->
 handle_info({ssl_closed, _Socket}, Context) ->
 	{noreply, Context};
 
+handle_info({ssl, _, <<"PING", _/binary>>}, Context) ->
+	io:format("PING PONG ~n"),
+	ssl:send(Context#context.socket, "PONG :tmi.twitch.tv\r\n"),
+	{noreply, Context};
+
 handle_info({ssl, _, Mensagem}, Context) ->
 	io:format("~p ~n", [Mensagem]),
 	{noreply, Context};
