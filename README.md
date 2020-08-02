@@ -14,6 +14,7 @@ Uso
 ---
     1> erlangbot_server:connect().
     2> erlangbot_server:join("#<canal>").
-    3> erlangbot_server:part("#<canal>").
-    4> erlangbot_server:disconnect().
+    3> erlangbot_server:send_message("#<canal>", "Mensagem!").
+    4> erlangbot_server:part("#<canal>").
+    5> erlangbot_server:disconnect().
 
