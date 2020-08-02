@@ -1,7 +1,7 @@
 -module(erlangbot_client).
 -behaviour(gen_server).
 -include("context.hrl").
--export([start/1, start_link/1, init/1, connect/0, send/1, stop/0, handle_call/3, handle_cast/2, handle_info/2, code_change/3, terminate/2, handle_receive/1]).
+-export([start/1, start_link/1, init/1, connect/0, send/1, stop/0, handle_call/3, handle_cast/2, handle_info/2, code_change/3, terminate/2]).
 
 
 start(Context) ->
@@ -69,6 +69,3 @@ send(Data) ->
 send(Socket, Data) ->
 	Message = Data ++ "\r\n",
 	gen_tcp:send(Socket, Message).
-
-handle_receive(Data) ->
-	io:format("~p ~n", [Data]).
