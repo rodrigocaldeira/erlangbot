@@ -34,6 +34,7 @@ handle_call({send, Data}, _From, Context) ->
 	{reply, ok, Context}.
 
 handle_cast(stop, Context) ->
+	gen_tcp:close(Context#context.socket),
 	{stop, normal, Context}.
 
 handle_info({tcp_closed, _Socket}, Context) ->
