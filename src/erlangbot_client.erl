@@ -52,11 +52,15 @@ handle_cast(stop, Context) ->
 	ssl:close(Context#context.socket),
 	{stop, normal, Context}.
 
-handle_info({tcp_closed, _Socket}, Context) ->
+handle_info({ssl_closed, _Socket}, Context) ->
 	{noreply, Context};
 
-handle_info(Message, Context) ->
-	io:format("[TMI] ~p ~n", [Message]),
+handle_info({ssl, _, Mensagem}, Context) ->
+	io:format("~p ~n", [Mensagem]),
+	{noreply, Context};
+
+handle_info(Mensagem, Context) ->
+	io:format("[MENSAGEM DESCONHECIDA] ~p ~n", [Mensagem]),
 	{noreply, Context}.
 
 code_change(_OldVersion, Context, _Extra) ->
