@@ -61,7 +61,12 @@ handle_info({ssl, _, <<"PING", _/binary>>}, Context) ->
 	{noreply, Context};
 
 handle_info({ssl, _, Mensagem}, Context) ->
-	io:format("~p ~n", [Mensagem]),
+	case re:run(Mensagem, "^:(?<from>.+)!.+[PRIVMSG] (?<channel>.+) :(?<message>.+)\\r\\n$", [{capture, all_but_first, list}]) of
+		{match, [From, Channel, Message]} ->
+			io:format("~p -> ~p: ~p~n", [From, Channel, Message]);
+		_ ->
+			io:format("~p ~n", [Mensagem])
+	end,
 	{noreply, Context};
 
 handle_info(Mensagem, Context) ->
